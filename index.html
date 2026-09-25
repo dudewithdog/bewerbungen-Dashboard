@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bewerbungs-Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4A5F3B;
+            --primary-light: #5a6f4b;
+            --accent: #6F7353;
+            --accent-dark: #5A4634;
+            --secondary: #3D5F5C;
+            --neutral: #64748b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #d4cfc9;
+            --text: #2a2a2a;
+            --text-light: #5a5a5a;
+            --success: #6F7353;
+            --warning: #5A4634;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1916;
+                --surface: #2a2622;
+                --border: #3a3632;
+                --text: #f1efeb;
+                --text-light: #b5b0a8;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        .tracker-section {
+            margin-bottom: 40px;
+        }
+
+        .tracker-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .category-box {
+            background: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .category-box:hover {
+            box-shadow: 0 4px 12px rgba(74, 95, 59, 0.15);
+        }
+
+        .category-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(74, 95, 59, 0.05);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .category-header:hover {
+            background: rgba(74, 95, 59, 0.08);
+        }
+
+        .category-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .category-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .category-box.expanded .category-list {
+            max-height: 1000px;
+        }
+
+        .app-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .app-item:last-child {
+            border-bottom: none;
+        }
+
+        .app-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .app-name {
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .app-type {
+            font-size: 11px;
+            color: var(--text-light);
+            background: rgba(74, 95, 59, 0.15);
+            padding: 3px 8px;
+            border-radius: 3px;
+            border-left: 2px solid var(--primary);
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .app-type.initiative {
+            background: rgba(61, 95, 92, 0.15);
+            border-left-color: var(--secondary);
+        }
+
+        .app-reason {
+            font-size: 12px;
+            color: var(--text-light);
+            font-style: italic;
+            margin-top: 4px;
+            padding: 6px;
+            background: rgba(90, 70, 52, 0.08);
+            border-radius: 3px;
+            border-left: 2px solid var(--accent-dark);
+        }
+
+        .app-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .app-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .app-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .app-btn.reject {
+            border-color: var(--accent-dark);
+            color: var(--accent-dark);
+        }
+
+        .app-btn.reject:hover {
+            background: var(--accent-dark);
+            color: white;
+        }
+
+        .empty-state {
+            padding: 20px 16px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal h3 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-light);
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            font-family: inherit;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .modal-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.confirm {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-btn.confirm:hover {
+            background: var(--primary-light);
+        }
+
+        .modal-btn.cancel {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .modal-btn.cancel:hover {
+            background: var(--bg);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 40px 0;
+        }
+
+        .stats-section {
+            background: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stats-section h3 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-actions {
+                flex-direction: column;
+            }
+
+            .app-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Bewerbungs-Dashboard</h1>
+            <p class="subtitle">Erik Roedenbeck – Interaktive Bewerbungsverwaltung</p>
+        </header>
+
+        <div class="stats-section">
+            <h3>📊 Übersicht</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Gesamt</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Versendet</div>
+                    <div class="stat-value" id="sentCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Nicht verfolgt</div>
+                    <div class="stat-value" id="rejectedCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tracker-section">
+            <div class="tracker-title">📋 Bewerbungen</div>
+            <div class="category-grid" id="categoryGrid"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="sentModal">
+        <div class="modal-content">
+            <h3>Bewerbung versendet</h3>
+            <p class="modal-subtitle" id="sentModalApp"></p>
+            <p class="modal-subtitle">Diese Bewerbung wird zu «Versendet» verschoben.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeSentModal()">Abbrechen</button>
+                <button class="modal-btn confirm" onclick="confirmSent()">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="rejectModal">
+        <div class="modal-content">
+            <h3>Nicht verfolgen</h3>
+            <p class="modal-subtitle" id="rejectModalApp"></p>
+            <textarea class="modal-input" id="rejectReason" placeholder="Grund (z.B. Arbeitgeber bekannt als schlecht, zu weit weg, Anforderungen passen nicht)" rows="4"></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeRejectModal()">Abbrechen</button>
+                <button class="modal-btn confirm" onclick="confirmReject()">Nicht verfolgen</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Category definitions
+        const CATEGORIES = {
+            'zu-bearbeiten': {
+                label: 'Zu bearbeiten',
+                icon: '📝',
+                actionButtons: true
+            },
+            'bereit': {
+                label: 'Bereit',
+                icon: '✅',
+                actionButtons: false
+            },
+            'versendet': {
+                label: 'Versendet',
+                icon: '📤',
+                actionButtons: false
+            },
+            'nicht-verfolgt': {
+                label: 'Nicht verfolgt',
+                icon: '❌',
+                actionButtons: false
+            },
+            'rueckmeldung': {
+                label: 'Rückmeldung',
+                icon: '💬',
+                actionButtons: false
+            },
+            'ergebnis': {
+                label: 'Ergebnis',
+                icon: '🏆',
+                actionButtons: false
+            }
+        };
+
+        // Initial data
+        const INITIAL_DATA = {
+            applications: [
+                {
+                    id: 1,
+                    name: 'Bildungsstellen.ch – Sekundarstufe I',
+                    type: 'Initiative',
+                    category: 'zu-bearbeiten',
+                    date: new Date().toISOString(),
+                    reason: null
+                },
+                {
+                    id: 2,
+                    name: 'Schuljobs.ch – BVJ Bern',
+                    type: 'Ausschreibung',
+                    category: 'zu-bearbeiten',
+                    date: new Date().toISOString(),
+                    reason: null
+                },
+                {
+                    id: 3,
+                    name: 'BWZT Lichtensteig – BVJ',
+                    type: 'Ausschreibung',
+                    category: 'bereit',
+                    date: new Date().toISOString(),
+                    reason: null
+                },
+                {
+                    id: 4,
+                    name: 'GWG – Initiativbewerbung',
+                    type: 'Initiative',
+                    category: 'versendet',
+                    date: new Date().toISOString(),
+                    reason: null
+                },
+                {
+                    id: 5,
+                    name: 'Zebis – Job-Coach Zürich',
+                    type: 'Ausschreibung',
+                    category: 'versendet',
+                    date: new Date().toISOString(),
+                    reason: null
+                },
+                {
+                    id: 6,
+                    name: 'Jobs.ch – Personalentwicklung',
+                    type: 'Ausschreibung',
+                    category: 'versendet',
+                    date: new Date().toISOString(),
+                    reason: null
+                }
+            ]
+        };
+
+        // State management
+        let appData = null;
+        let currentItem = null;
+
+        function loadData() {
+            const saved = localStorage.getItem('bewerbungen-data');
+            if (saved) {
+                appData = JSON.parse(saved);
+            } else {
+                appData = JSON.parse(JSON.stringify(INITIAL_DATA));
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('bewerbungen-data', JSON.stringify(appData));
+            render();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function moveApplication(appId, newCategory) {
+            const app = appData.applications.find(a => a.id === appId);
+            if (app) {
+                const oldCategory = app.category;
+                app.category = newCategory;
+                saveData();
+                showToast(`${app.name} → ${CATEGORIES[newCategory].label}`);
+                return true;
+            }
+            return false;
+        }
+
+        function toggleCategory(categoryKey) {
+            const boxes = document.querySelectorAll('.category-box');
+            boxes.forEach(box => {
+                if (box.dataset.category === categoryKey) {
+                    box.classList.toggle('expanded');
+                }
+            });
+        }
+
+        function openSentModal(appId) {
+            const app = appData.applications.find(a => a.id === appId);
+            if (app) {
+                currentItem = app;
+                document.getElementById('sentModalApp').textContent = app.name;
+                document.getElementById('sentModal').classList.add('active');
+            }
+        }
+
+        function closeSentModal() {
+            document.getElementById('sentModal').classList.remove('active');
+            currentItem = null;
+        }
+
+        function confirmSent() {
+            if (currentItem) {
+                moveApplication(currentItem.id, 'versendet');
+                closeSentModal();
+            }
+        }
+
+        function openRejectModal(appId) {
+            const app = appData.applications.find(a => a.id === appId);
+            if (app) {
+                currentItem = app;
+                document.getElementById('rejectModalApp').textContent = app.name;
+                document.getElementById('rejectReason').value = '';
+                document.getElementById('rejectModal').classList.add('active');
+            }
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.remove('active');
+            currentItem = null;
+        }
+
+        function confirmReject() {
+            if (currentItem) {
+                const reason = document.getElementById('rejectReason').value.trim();
+                currentItem.reason = reason;
+                moveApplication(currentItem.id, 'nicht-verfolgt');
+                closeRejectModal();
+            }
+        }
+
+        function updateStats() {
+            const total = appData.applications.length;
+            const sent = appData.applications.filter(a => a.category === 'versendet').length;
+            const rejected = appData.applications.filter(a => a.category === 'nicht-verfolgt').length;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('sentCount').textContent = sent;
+            document.getElementById('rejectedCount').textContent = rejected;
+        }
+
+        function render() {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+
+            Object.entries(CATEGORIES).forEach(([categoryKey, categoryConfig]) => {
+                const apps = appData.applications.filter(a => a.category === categoryKey);
+                const box = document.createElement('div');
+                box.className = 'category-box';
+                box.dataset.category = categoryKey;
+
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.onclick = () => toggleCategory(categoryKey);
+                header.innerHTML = `
+                    <div class="category-label">${categoryConfig.icon} ${categoryConfig.label}</div>
+                    <div class="category-count">${apps.length}</div>
+                `;
+
+                const list = document.createElement('div');
+                list.className = 'category-list';
+
+                if (apps.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.textContent = 'Noch keine Bewerbungen';
+                    list.appendChild(empty);
+                } else {
+                    apps.forEach(app => {
+                        const item = document.createElement('div');
+                        item.className = 'app-item';
+
+                        const info = document.createElement('div');
+                        info.className = 'app-info';
+
+                        const name = document.createElement('div');
+                        name.className = 'app-name';
+                        name.textContent = app.name;
+
+                        const type = document.createElement('span');
+                        type.className = `app-type ${app.type === 'Initiative' ? 'initiative' : ''}`;
+                        type.textContent = app.type;
+
+                        info.appendChild(name);
+                        info.appendChild(type);
+
+                        if (app.reason) {
+                            const reasonDiv = document.createElement('div');
+                            reasonDiv.className = 'app-reason';
+                            reasonDiv.textContent = `Grund: ${app.reason}`;
+                            info.appendChild(reasonDiv);
+                        }
+
+                        const actions = document.createElement('div');
+                        actions.className = 'app-actions';
+
+                        if (categoryConfig.actionButtons) {
+                            const sentBtn = document.createElement('button');
+                            sentBtn.className = 'app-btn';
+                            sentBtn.textContent = '✓ Raus';
+                            sentBtn.onclick = () => openSentModal(app.id);
+
+                            const rejectBtn = document.createElement('button');
+                            rejectBtn.className = 'app-btn reject';
+                            rejectBtn.textContent = '✗ Nicht';
+                            rejectBtn.onclick = () => openRejectModal(app.id);
+
+                            actions.appendChild(sentBtn);
+                            actions.appendChild(rejectBtn);
+                        }
+
+                        item.appendChild(info);
+                        item.appendChild(actions);
+                        list.appendChild(item);
+                    });
+                }
+
+                box.appendChild(header);
+                box.appendChild(list);
+                grid.appendChild(box);
+            });
+
+            updateStats();
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
